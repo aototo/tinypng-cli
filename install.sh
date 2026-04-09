@@ -56,15 +56,16 @@ resolve_version() {
 main() {
   command -v tar >/dev/null 2>&1 || die "need 'tar' to extract the archive"
 
-  local target version archive url tmp
+  local target version archive url
   target=$(detect_target)
   version=$(resolve_version)
   archive="tinypng-cli-v${version}-${target}.tar.gz"
   url="https://github.com/${REPO}/releases/download/v${version}/${archive}"
 
   say "installing tinypng-cli v${version} for ${target}"
+  # tmp is intentionally global so the EXIT trap can see it under `set -u`.
   tmp=$(mktemp -d)
-  trap 'rm -rf "$tmp"' EXIT
+  trap 'rm -rf "${tmp:-}"' EXIT
 
   say "downloading ${url}"
   if command -v curl >/dev/null 2>&1; then
