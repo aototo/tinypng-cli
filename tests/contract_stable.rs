@@ -42,10 +42,7 @@ fn every_stable_code_is_reachable() {
     let codes: Vec<&str> = cases.iter().map(|e| e.code()).collect();
     assert_eq!(codes.len(), STABLE_ERROR_CODES.len());
     for expected in STABLE_ERROR_CODES {
-        assert!(
-            codes.contains(expected),
-            "missing stable code: {expected}"
-        );
+        assert!(codes.contains(expected), "missing stable code: {expected}");
     }
 }
 
