@@ -1,0 +1,165 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+  BIN_NAME: tinypng
+  PKG_NAME: tinypng-cli
+
+jobs:
+  build:
+    name: build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            use_cross: false
+            archive_ext: tar.gz
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            use_cross: false
+            archive_ext: tar.gz
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-22.04
+            use_cross: false
+            archive_ext: tar.gz
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-22.04
+            use_cross: true
+            archive_ext: tar.gz
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            use_cross: false
+            archive_ext: zip
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Install cross
+        if: matrix.use_cross
+        run: cargo install cross --locked
+
+      - name: Build (cargo)
+        if: "!matrix.use_cross"
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Build (cross)
+        if: matrix.use_cross
+        run: cross build --release --target ${{ matrix.target }}
+
+      - name: Stage artifact (unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          set -eu
+          VERSION="${GITHUB_REF_NAME}"
+          STAGE="${PKG_NAME}-${VERSION}-${{ matrix.target }}"
+          mkdir -p "dist/${STAGE}"
+          cp "target/${{ matrix.target }}/release/${BIN_NAME}" "dist/${STAGE}/${BIN_NAME}"
+          cp README.md LICENSE "dist/${STAGE}/"
+          cd dist
+          tar -czf "${STAGE}.tar.gz" -C "${STAGE}" "${BIN_NAME}"
+          # Include a sibling with docs for manual downloads
+          tar -czf "${STAGE}-full.tar.gz" "${STAGE}"
+          ls -lh
+
+      - name: Stage artifact (windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME
+          $stage = "${env:PKG_NAME}-${version}-${{ matrix.target }}"
+          New-Item -ItemType Directory -Force -Path "dist/$stage" | Out-Null
+          Copy-Item "target/${{ matrix.target }}/release/${env:BIN_NAME}.exe" "dist/$stage/${env:BIN_NAME}.exe"
+          Copy-Item README.md,LICENSE "dist/$stage/"
+          Push-Location dist
+          Compress-Archive -Path "$stage/${env:BIN_NAME}.exe" -DestinationPath "$stage.zip" -Force
+          Compress-Archive -Path "$stage" -DestinationPath "$stage-full.zip" -Force
+          Pop-Location
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}
+          path: dist/*.${{ matrix.archive_ext }}
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: List artifacts
+        run: ls -lh dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+
+  publish-crates-io:
+    name: Publish to crates.io
+    needs: release
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.ref, '-') }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: cargo publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          if [ -z "${CARGO_REGISTRY_TOKEN:-}" ]; then
+            echo "CARGO_REGISTRY_TOKEN not set — skipping crates.io publish."
+            exit 0
+          fi
+          cargo publish --token "$CARGO_REGISTRY_TOKEN"
+
+  publish-npm:
+    name: Publish to npm
+    needs: release
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.ref, '-') }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+      - name: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
+            echo "NPM_TOKEN not set — skipping npm publish."
+            exit 0
+          fi
+          npm publish --access public

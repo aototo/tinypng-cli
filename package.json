@@ -1,0 +1,48 @@
+{
+  "name": "tinypng-cli",
+  "version": "0.1.0",
+  "description": "Fast batch image compression powered by TinyPNG, built for humans and AI.",
+  "keywords": [
+    "tinypng",
+    "image",
+    "compression",
+    "cli",
+    "png",
+    "jpg",
+    "webp"
+  ],
+  "author": "aototo",
+  "license": "MIT",
+  "homepage": "https://github.com/aototo/tinypng-cli",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aototo/tinypng-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aototo/tinypng-cli/issues"
+  },
+  "bin": {
+    "tinypng": "scripts/run.js"
+  },
+  "scripts": {
+    "postinstall": "node scripts/install.js"
+  },
+  "files": [
+    "scripts/install.js",
+    "scripts/run.js",
+    "LICENSE",
+    "README.md"
+  ],
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ],
+  "engines": {
+    "node": ">=16"
+  }
+}
