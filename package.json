@@ -1,5 +1,5 @@
 {
-  "name": "tinypng-cli",
+  "name": "@aototo/tinypng-cli",
   "version": "0.1.0",
   "description": "Fast batch image compression powered by TinyPNG, built for humans and AI.",
   "keywords": [

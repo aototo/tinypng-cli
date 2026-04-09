@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/aototo/tinypng-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/aototo/tinypng-cli/actions/workflows/ci.yml)
 [![crates.io](https://img.shields.io/crates/v/tinypng-cli.svg)](https://crates.io/crates/tinypng-cli)
-[![npm](https://img.shields.io/npm/v/tinypng-cli.svg)](https://www.npmjs.com/package/tinypng-cli)
+[![npm](https://img.shields.io/npm/v/@aototo/tinypng-cli.svg)](https://www.npmjs.com/package/@aototo/tinypng-cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Fast batch image compression powered by [TinyPNG](https://tinypng.com/), built for humans and AI.
@@ -23,10 +23,10 @@ A single-binary CLI that batch-compresses PNG / JPG / WebP, parallelized across 
 ### Option 1 — via npm (works for everyone, no Rust needed)
 
 ```bash
-npm install -g tinypng-cli
+npm install -g @aototo/tinypng-cli
 ```
 
-The npm package is a thin wrapper that auto-downloads the matching prebuilt binary from GitHub Releases for your platform (macOS / Linux / Windows, x64 / arm64).
+The npm package is a thin wrapper that auto-downloads the matching prebuilt binary from GitHub Releases for your platform (macOS / Linux / Windows, x64 / arm64). After install you get a `tinypng` command on your `$PATH`.
 
 ### Option 2 — via Cargo (Rust users)
 

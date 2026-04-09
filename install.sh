@@ -24,7 +24,7 @@ detect_target() {
   case "$(uname -s)" in
     Darwin) os="apple-darwin" ;;
     Linux)  os="unknown-linux-gnu" ;;
-    *) die "unsupported OS: $(uname -s). Use the npm package instead: npm i -g tinypng-cli" ;;
+    *) die "unsupported OS: $(uname -s). Use the npm package instead: npm i -g @aototo/tinypng-cli" ;;
   esac
   case "$(uname -m)" in
     x86_64|amd64) arch="x86_64" ;;

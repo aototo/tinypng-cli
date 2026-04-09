@@ -18,7 +18,7 @@ if (result.error) {
     console.error(
       `tinypng-cli: binary not found at ${binary}.\n` +
         "The postinstall step may have failed. Try reinstalling:\n" +
-        "  npm install -g tinypng-cli\n" +
+        "  npm install -g @aototo/tinypng-cli\n" +
         "Or download manually from https://github.com/aototo/tinypng-cli/releases"
     );
   } else {
