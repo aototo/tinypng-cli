@@ -45,9 +45,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
+      # The repo pins a toolchain via rust-toolchain.toml; let rustup honor it
+      # and add the matrix target to the active toolchain explicitly so cross
+      # compile (e.g. arm64 macOS -> x86_64 macOS) finds the std rlibs.
+      - name: Install rustup
+        shell: bash
+        run: |
+          if ! command -v rustup >/dev/null 2>&1; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none
+            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          fi
+
+      - name: Add target
+        shell: bash
+        run: |
+          rustup show
+          rustup target add ${{ matrix.target }}
 
       - uses: Swatinem/rust-cache@v2
         with:
